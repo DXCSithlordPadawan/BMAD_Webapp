@@ -1,0 +1,29 @@
+# BMAD Forge Configuration File
+# This file provides easy-to-amend configuration options for the application.
+# Edit this file to customize version and template settings.
+
+# Application version information
+application:
+  version: "1.3.0"
+  name: "BMAD Forge"
+
+# Template configuration
+templates:
+  # Local templates directory (relative to webapp folder)
+  local_path: "forge/templates/agents"
+  
+  # GitHub repository settings for template synchronization
+  github:
+    # Repository in format "owner/repo"
+    repository: "DXCSithlordPadawan/BMAD_Forge"
+    # Branch to sync from
+    branch: "main"
+    # Path within the repository to find templates
+    remote_path: "webapp/forge/templates"
+  
+  # Template sync behavior
+  sync:
+    # Overwrite existing templates during sync (ensures single version in database)
+    overwrite_existing: true
+    # Match templates by title for overwrite (alternative: remote_path)
+    match_by: "title"

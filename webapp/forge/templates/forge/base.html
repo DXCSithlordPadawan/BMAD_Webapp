@@ -1,0 +1,130 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="BMAD Forge - Prompt Engineering Tool for BMAD Framework">
+    <title>{% block title %}BMAD Forge{% endblock title %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="{% static 'css/styles.css' %}" rel="stylesheet">
+    
+    {% block extra_css %}{% endblock extra_css %}
+</head>
+<body class="bg-dark text-light">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="{% url 'forge:dashboard' %}">
+                <i class="bi bi-cpu me-2"></i>BMAD Forge
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" 
+                           href="{% url 'forge:dashboard' %}">
+                            <i class="bi bi-speedometer2 me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'template_list' %}active{% endif %}" 
+                           href="{% url 'forge:template_list' %}">
+                            <i class="bi bi-collection me-1"></i>Templates
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'generate_document_select' or request.resolver_match.url_name == 'generate_document_wizard' %}active{% endif %}" 
+                           href="{% url 'forge:generate_document_select' %}">
+                            <i class="bi bi-file-earmark-text me-1"></i>Generate Document
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'prompt_history' %}active{% endif %}" 
+                           href="{% url 'forge:prompt_history' %}">
+                            <i class="bi bi-clock-history me-1"></i>History
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'github_sync' %}active{% endif %}" 
+                           href="{% url 'forge:github_sync' %}">
+                            <i class="bi bi-github me-1"></i>Sync
+                        </a>
+                    </li>
+                </ul>
+                <div class="d-flex">
+                    <span class="navbar-text text-muted me-3">
+                        <small>v{{ APP_VERSION|default:"1.0.0" }}</small>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <main class="container-fluid py-4">
+        {% if messages %}
+        <div class="container">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        {% block content %}
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-8 text-center">
+                    <h1 class="display-4 fw-bold mb-4">Welcome to BMAD Forge</h1>
+                    <p class="lead text-muted mb-4">
+                        A powerful prompt engineering tool for generating BMAD Framework-compliant prompts.
+                    </p>
+                    <div class="d-flex gap-3 justify-content-center">
+                        <a href="{% url 'forge:template_list' %}" class="btn btn-primary btn-lg">
+                            <i class="bi bi-collection me-2"></i>Browse Templates
+                        </a>
+                        <a href="{% url 'forge:github_sync' %}" class="btn btn-outline-secondary btn-lg">
+                            <i class="bi bi-arrow-repeat me-2"></i>Sync Templates
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endblock content %}
+    </main>
+    
+    <!-- Footer -->
+    <footer class="bg-dark border-top border-secondary py-4 mt-auto">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 text-muted">
+                    <small>&copy; 2024 BMAD Forge. Built with Django & Bootstrap 5.</small>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <small class="text-muted">BMAD Framework: 
+                        <a href="https://github.com/bmadcode/BMAD-METHOD-v5" target="_blank" class="text-muted">
+                            GitHub <i class="bi bi-box-arrow-up-right"></i>
+                        </a>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="{% static 'js/clipboard.js' %}"></script>
+    {% block extra_js %}{% endblock extra_js %}
+</body>
+</html>

@@ -1,0 +1,42 @@
+# Production Dependencies for BMAD Forge
+# Install with: pip install -r requirements-prod.txt
+
+# Include base requirements
+-r requirements.txt
+
+# WSGI HTTP Server
+# High-performance production server for Django
+gunicorn==23.0.0
+
+# PostgreSQL Database Adapter
+# Binary package with PostgreSQL client library included
+psycopg2-binary==2.9.10
+
+# Static File Serving
+# Serves static files efficiently with compression and caching
+whitenoise==6.8.2
+
+# Error Tracking and Performance Monitoring
+# Real-time error tracking and performance monitoring
+sentry-sdk==2.22.0
+
+# Content Security Policy
+# Adds CSP headers to prevent XSS attacks
+django-csp==4.0.0
+
+# Permissions Policy
+# Controls browser feature access (formerly Feature-Policy)
+django-permissions-policy==5.0.0
+
+# Redis Cache Backend
+# High-performance caching with Redis
+django-redis==5.4.0
+
+# Optional: Rate Limiting (uncomment if needed)
+# django-ratelimit==4.1.0
+
+# Optional: Input Sanitization (uncomment if needed)
+# bleach==6.2.0
+
+# Optional: Advanced Security Headers (uncomment if needed)
+# django-security==0.18.0

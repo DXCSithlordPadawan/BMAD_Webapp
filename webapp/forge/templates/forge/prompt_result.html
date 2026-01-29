@@ -1,0 +1,180 @@
+{% extends 'forge/base.html' %}
+
+{% block title %}Generated Prompt - BMAD Forge{% endblock title %}
+
+{% block extra_css %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" rel="stylesheet">
+{% endblock extra_css %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'forge:dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'forge:template_list' %}">Templates</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'forge:template_detail' prompt.template.id %}">{{ prompt.template.title }}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Result</li>
+                </ol>
+            </nav>
+            
+            <!-- Result Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-1">Generated Prompt</h1>
+                    <p class="text-muted mb-0">
+                        <span class="badge bg-secondary">{{ prompt.template.agent_role|upper }}</span>
+                        <span class="badge bg-dark border">{{ prompt.template.workflow_phase|title }}</span>
+                        <span class="ms-2">
+                            {% if prompt.is_valid %}
+                            <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>BMAD Compliant</span>
+                            {% else %}
+                            <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Needs Review</span>
+                            {% endif %}
+                        </span>
+                    </p>
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-outline-primary" id="copyBtn" onclick="copyToClipboard()">
+                        <i class="bi bi-clipboard me-1"></i>Copy
+                    </button>
+                    <a href="{% url 'forge:download_prompt' prompt.id %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-download me-1"></i>Download
+                    </a>
+                    <a href="{% url 'forge:prompt_form' prompt.template.id %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-repeat me-1"></i>Regenerate
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Validation Summary -->
+            {% if validation_details.is_valid %}
+            <div class="alert alert-success bg-dark border-success d-flex align-items-center" role="alert">
+                <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+                <div>
+                    <strong>BMAD Compliant!</strong> This prompt meets all structural requirements.
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-warning bg-dark border-warning d-flex align-items-center" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+                <div>
+                    <strong>Validation Issues Found</strong> 
+                    {{ validation_details.missing_sections|length }} missing sections, 
+                    {{ validation_details.unreplaced_variables|length }} unreplaced variables.
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Generated Prompt Display -->
+            <div class="card bg-dark border-secondary mb-4">
+                <div class="card-header bg-secondary bg-opacity-25 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="bi bi-magic me-2"></i>Generated Prompt</h6>
+                    <small class="text-muted">
+                        <i class="bi bi-clock me-1"></i>{{ prompt.created_at|date:"F d, Y at H:i:s" }}
+                    </small>
+                </div>
+                <div class="card-body">
+                    <div class="bg-black p-4 rounded" style="max-height: 600px; overflow-y: auto;">
+                        <pre class="mb-0"><code id="promptContent" class="language-markdown">{{ prompt.final_output }}</code></pre>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Input Data Summary -->
+            <div class="card bg-dark border-secondary mb-4">
+                <div class="card-header bg-secondary bg-opacity-25">
+                    <h6 class="mb-0"><i class="bi bi-input-cursor-text me-2"></i>Input Data Used</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-dark table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Variable</th>
+                                    <th>Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for key, value in prompt.input_data.items %}
+                                <tr>
+                                    <td><code>{{ key }}</code></td>
+                                    <td>{{ value|linebreaksbr|truncatechars:100 }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Validation Details -->
+            {% if not validation_details.is_valid %}
+            <div class="card bg-dark border-danger mb-4">
+                <div class="card-header bg-danger bg-opacity-25 text-danger">
+                    <h6 class="mb-0"><i class="bi bi-x-circle me-2"></i>Validation Issues</h6>
+                </div>
+                <div class="card-body">
+                    {% if validation_details.missing_sections %}
+                    <div class="mb-3">
+                        <h6 class="text-danger">Missing Required Sections</h6>
+                        <ul class="list-unstyled mb-0">
+                            {% for section in validation_details.missing_sections %}
+                            <li><i class="bi bi-dash me-2"></i>{{ section }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    
+                    {% if validation_details.unreplaced_variables %}
+                    <div>
+                        <h6 class="text-danger">Unreplaced Variables</h6>
+                        <ul class="list-unstyled mb-0">
+                            {% for var in validation_details.unreplaced_variables %}
+                            <li><i class="bi bi-dash me-2"></i><code>{{ var }}</code></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Actions -->
+            <div class="d-flex justify-content-between mb-4">
+                <a href="{% url 'forge:template_detail' prompt.template.id %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>Back to Template
+                </a>
+                <a href="{% url 'forge:prompt_form' prompt.template.id %}" class="btn btn-primary">
+                    <i class="bi bi-lightning me-1"></i>Generate Another
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+<script>
+    // Initialize syntax highlighting
+    hljs.highlightAll();
+    
+    // Copy to clipboard function
+    function copyToClipboard() {
+        const content = document.getElementById('promptContent').textContent;
+        navigator.clipboard.writeText(content).then(() => {
+            const btn = document.getElementById('copyBtn');
+            btn.innerHTML = '<i class="bi bi-check me-1"></i>Copied!';
+            setTimeout(() => {
+                btn.innerHTML = '<i class="bi bi-clipboard me-1"></i>Copy';
+            }, 2000);
+        }).catch(err => {
+            console.error('Failed to copy:', err);
+            alert('Failed to copy to clipboard');
+        });
+    }
+</script>
+{% endblock extra_js %}

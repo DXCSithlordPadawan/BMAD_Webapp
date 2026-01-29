@@ -1,0 +1,880 @@
+{% extends 'forge/base.html' %}
+
+{% block title %}Generate Document: {{ template.title }} - BMAD Forge{% endblock title %}
+
+{% block extra_css %}
+<style>
+    .wizard-progress {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+        position: relative;
+    }
+    .wizard-progress::before {
+        content: '';
+        position: absolute;
+        top: 15px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: #495057;
+        z-index: 0;
+    }
+    .wizard-step {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1;
+    }
+    .wizard-step .step-number {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #495057;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+    .wizard-step.active .step-number {
+        background: #0d6efd;
+    }
+    .wizard-step.completed .step-number {
+        background: #198754;
+    }
+    .wizard-step.has-errors .step-number {
+        background: #dc3545;
+    }
+    .wizard-step.has-warnings .step-number {
+        background: #ffc107;
+        color: #212529;
+    }
+    .wizard-step .step-label {
+        font-size: 0.75rem;
+        margin-top: 0.5rem;
+        text-align: center;
+        max-width: 100px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .validation-feedback {
+        margin-top: 0.5rem;
+        padding: 0.75rem;
+        border-radius: 0.25rem;
+        display: none;
+        transition: all 0.3s ease;
+    }
+    .validation-feedback.show {
+        display: block;
+    }
+    .validation-feedback.is-valid {
+        background: rgba(25, 135, 84, 0.15);
+        border: 1px solid #198754;
+    }
+    .validation-feedback.has-errors {
+        background: rgba(220, 53, 69, 0.15);
+        border: 1px solid #dc3545;
+    }
+    .validation-feedback.has-warnings {
+        background: rgba(255, 193, 7, 0.15);
+        border: 1px solid #ffc107;
+    }
+    .validation-feedback.has-info {
+        background: rgba(13, 110, 253, 0.1);
+        border: 1px solid #0d6efd;
+    }
+    .section-preview {
+        max-height: 200px;
+        overflow-y: auto;
+        font-size: 0.85rem;
+    }
+    .help-panel {
+        background: rgba(13, 110, 253, 0.1);
+        border: 1px solid rgba(13, 110, 253, 0.3);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    .help-panel h6 {
+        color: #6ea8fe;
+        margin-bottom: 0.75rem;
+    }
+    .keyword-badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        margin: 0.125rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+    }
+    .keyword-required {
+        background: rgba(220, 53, 69, 0.2);
+        border: 1px solid #dc3545;
+        color: #ea868f;
+    }
+    .keyword-recommended {
+        background: rgba(255, 193, 7, 0.2);
+        border: 1px solid #ffc107;
+        color: #ffda6a;
+    }
+    .keyword-found {
+        background: rgba(25, 135, 84, 0.2);
+        border: 1px solid #198754;
+        color: #75b798;
+    }
+    .completion-tracker {
+        margin-bottom: 1rem;
+    }
+    .completion-bar {
+        height: 8px;
+        border-radius: 4px;
+        background: #495057;
+        overflow: hidden;
+    }
+    .completion-bar-fill {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.3s ease, background 0.3s ease;
+    }
+    .severity-critical {
+        color: #dc3545;
+    }
+    .severity-warning {
+        color: #ffc107;
+    }
+    .severity-info {
+        color: #0d6efd;
+    }
+    .example-block {
+        background: #1a1d20;
+        border-left: 3px solid #6ea8fe;
+        padding: 0.75rem;
+        margin-top: 0.5rem;
+        font-size: 0.85rem;
+        border-radius: 0 0.25rem 0.25rem 0;
+    }
+    .structured-field {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid #495057;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+    }
+    .structured-field label {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+    .word-count {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    .word-count.under-minimum {
+        color: #dc3545;
+    }
+    .word-count.at-minimum {
+        color: #198754;
+    }
+</style>
+{% endblock extra_css %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'forge:dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'forge:generate_document_select' %}">Generate Document</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ template.title }}</li>
+                </ol>
+            </nav>
+
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-start mb-4">
+                <div>
+                    <h2 class="mb-2">
+                        <i class="bi bi-magic me-2"></i>Generate: {{ template.title }}
+                    </h2>
+                    <div class="d-flex gap-2">
+                        <span class="badge bg-secondary">{{ template.agent_role|upper }}</span>
+                        <span class="badge bg-dark border">{{ template.workflow_phase|title }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Overall Completion Tracker -->
+            <div class="card bg-dark border-secondary mb-4">
+                <div class="card-body py-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted">Overall Progress</span>
+                        <span id="overallPercentage" class="fw-bold">0%</span>
+                    </div>
+                    <div class="completion-bar">
+                        <div id="overallProgressBar" class="completion-bar-fill bg-primary" style="width: 0%"></div>
+                    </div>
+                    <div class="d-flex justify-content-between mt-2">
+                        <small class="text-muted">
+                            <span id="completedSteps">0</span> of {{ total_steps }} sections completed
+                        </small>
+                        <small id="errorWarningCount"></small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Indicator -->
+            {% if total_steps > 1 %}
+            <div class="card bg-dark border-secondary mb-4">
+                <div class="card-body">
+                    <div class="wizard-progress" id="wizardProgress">
+                        {% for step in wizard_steps %}
+                        <div class="wizard-step {% if step.step_number < current_step %}completed{% elif step.step_number == current_step %}active{% endif %}" data-step="{{ step.step_number }}">
+                            <span class="step-number">
+                                {% if step.step_number < current_step %}
+                                <i class="bi bi-check"></i>
+                                {% else %}
+                                {{ step.step_number }}
+                                {% endif %}
+                            </span>
+                            <span class="step-label text-muted">{{ step.section_name|truncatechars:15 }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="text-center">
+                        <span class="text-muted">Step {{ current_step }} of {{ total_steps }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Current Section Form -->
+            <form method="post" id="sectionForm">
+                {% csrf_token %}
+                <input type="hidden" name="current_step" value="{{ current_step }}">
+
+                <div class="row">
+                    <!-- Main Content Column -->
+                    <div class="col-lg-8">
+                        <div class="card bg-dark border-secondary mb-4">
+                            <div class="card-header bg-secondary bg-opacity-25 d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-hash me-2"></i>{{ current_section.section_name }}
+                                </h5>
+                                {% if current_section.metadata.required %}
+                                <span class="badge bg-danger">Required</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Optional</span>
+                                {% endif %}
+                            </div>
+                            <div class="card-body">
+                                <!-- Section Description -->
+                                {% if current_section.description %}
+                                <div class="alert alert-info bg-info bg-opacity-10 border-info mb-4">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    <strong>Section Description:</strong>
+                                    <p class="mb-0 mt-2">{{ current_section.description }}</p>
+                                </div>
+                                {% endif %}
+
+                                <!-- Variables for this section -->
+                                {% if current_section.variables %}
+                                <div class="mb-4">
+                                    <h6 class="text-muted mb-3">
+                                        <i class="bi bi-code-slash me-2"></i>Variables to Fill
+                                    </h6>
+                                    {% for var in current_section.variables %}
+                                    <div class="mb-3">
+                                        <label for="var_{{ var }}" class="form-label">
+                                            {{ var|cut:"_"|title }}
+                                            <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="text"
+                                               class="form-control bg-dark text-light border-secondary variable-input"
+                                               id="var_{{ var }}"
+                                               name="var_{{ var }}"
+                                               value="{{ section_data|default_if_none:''|get_item:var|default:'' }}"
+                                               placeholder="Enter value for {{ var }}"
+                                               data-variable="{{ var }}"
+                                               required>
+                                        <div class="invalid-feedback" id="var_{{ var }}_error"></div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+
+                                <!-- Section Content Input -->
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <label for="section_content" class="form-label mb-0">
+                                            <i class="bi bi-pencil me-2"></i>Your Content for This Section
+                                        </label>
+                                        <span id="wordCount" class="word-count">0 words</span>
+                                    </div>
+                                    <textarea class="form-control bg-dark text-light border-secondary"
+                                              id="section_content"
+                                              name="section_content"
+                                              rows="8"
+                                              placeholder="Enter your content for the {{ current_section.section_name }} section...">{{ section_data|default_if_none:''|get_item:current_section.section_name|default:'' }}</textarea>
+                                    <div class="form-text text-muted">
+                                        {% if current_section.metadata.min_words %}
+                                        Minimum <span id="minWordsRequired">{{ current_section.metadata.min_words }}</span> words recommended.
+                                        {% endif %}
+                                        The original template content will be preserved.
+                                    </div>
+                                </div>
+
+                                <!-- Real-time Validation Feedback -->
+                                <div id="validationFeedback" class="validation-feedback">
+                                    <div id="validationContent"></div>
+                                </div>
+
+                                <!-- Original Section Content Preview -->
+                                {% if current_section.original_content %}
+                                <div class="mt-4">
+                                    <h6 class="text-muted mb-2">
+                                        <i class="bi bi-file-text me-2"></i>Original Template Content (Preview)
+                                    </h6>
+                                    <div class="bg-black p-3 rounded section-preview">
+                                        <pre class="mb-0 text-muted small"><code>{{ current_section.original_content }}</code></pre>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="card-footer bg-transparent border-secondary">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        {% if current_step > 1 %}
+                                        <button type="submit" name="action" value="prev" class="btn btn-outline-secondary">
+                                            <i class="bi bi-arrow-left me-1"></i>Previous
+                                        </button>
+                                        {% else %}
+                                        <a href="{% url 'forge:generate_document_select' %}" class="btn btn-outline-secondary">
+                                            <i class="bi bi-x-lg me-1"></i>Cancel
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        {% if current_step < total_steps %}
+                                        <button type="submit" name="action" value="next" class="btn btn-primary">
+                                            Next<i class="bi bi-arrow-right ms-1"></i>
+                                        </button>
+                                        {% else %}
+                                        <button type="submit" name="action" value="generate" class="btn btn-success" id="generateBtn">
+                                            <i class="bi bi-magic me-1"></i>Generate Document
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Help Panel Column -->
+                    <div class="col-lg-4">
+                        <!-- Contextual Help -->
+                        <div class="help-panel">
+                            <h6><i class="bi bi-question-circle me-2"></i>Section Guidance</h6>
+                            <p class="small mb-3" id="helpText">
+                                {% if current_section.guidance.help_text %}
+                                {{ current_section.guidance.help_text }}
+                                {% else %}
+                                Enter content for this section to complete the document.
+                                {% endif %}
+                            </p>
+
+                            {% if current_section.guidance.keywords_required %}
+                            <div class="mb-3">
+                                <small class="text-muted d-block mb-2">Required Keywords:</small>
+                                <div id="requiredKeywords">
+                                    {% for kw in current_section.guidance.keywords_required %}
+                                    <span class="keyword-badge keyword-required" data-keyword="{{ kw }}">{{ kw }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if current_section.guidance.keywords_recommended %}
+                            <div class="mb-3">
+                                <small class="text-muted d-block mb-2">Recommended Keywords:</small>
+                                <div id="recommendedKeywords">
+                                    {% for kw in current_section.guidance.keywords_recommended %}
+                                    <span class="keyword-badge keyword-recommended" data-keyword="{{ kw }}">{{ kw }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if current_section.guidance.examples %}
+                            <div class="mb-0">
+                                <small class="text-muted d-block mb-2">Example:</small>
+                                {% for example in current_section.guidance.examples|slice:":1" %}
+                                <div class="example-block">
+                                    <small>{{ example }}</small>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Validation Requirements -->
+                        <div class="card bg-dark border-secondary mb-4">
+                            <div class="card-header bg-secondary bg-opacity-25">
+                                <h6 class="mb-0"><i class="bi bi-check2-square me-2"></i>Requirements</h6>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-unstyled mb-0 small">
+                                    <li class="mb-2">
+                                        <i class="bi bi-check-circle text-muted me-2" id="reqMinWords"></i>
+                                        Minimum {{ current_section.metadata.min_words|default:10 }} words
+                                    </li>
+                                    {% if current_section.metadata.required %}
+                                    <li class="mb-2">
+                                        <i class="bi bi-check-circle text-muted me-2" id="reqNotEmpty"></i>
+                                        Section content required
+                                    </li>
+                                    {% endif %}
+                                    <li class="mb-2">
+                                        <i class="bi bi-check-circle text-muted me-2" id="reqNoVars"></i>
+                                        All variables replaced
+                                    </li>
+                                    {% if current_section.guidance.keywords_required %}
+                                    <li class="mb-0">
+                                        <i class="bi bi-check-circle text-muted me-2" id="reqKeywords"></i>
+                                        Required keywords included
+                                    </li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Section Navigation -->
+            {% if total_steps > 1 %}
+            <div class="card bg-dark border-secondary">
+                <div class="card-header bg-secondary bg-opacity-25">
+                    <h6 class="mb-0"><i class="bi bi-list-ul me-2"></i>All Sections</h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for step in wizard_steps %}
+                        <div class="list-group-item bg-dark d-flex justify-content-between align-items-center
+                                    {% if step.step_number == current_step %}border-primary{% else %}border-secondary{% endif %}"
+                             data-section-step="{{ step.step_number }}">
+                            <div>
+                                <span class="badge step-status-badge {% if step.step_number < current_step %}bg-success{% elif step.step_number == current_step %}bg-primary{% else %}bg-secondary{% endif %} me-2">
+                                    {{ step.step_number }}
+                                </span>
+                                {{ step.section_name }}
+                                {% if step.metadata.required %}
+                                <small class="text-danger ms-1">*</small>
+                                {% endif %}
+                            </div>
+                            <span class="badge step-completion-badge {% if step.step_number < current_step %}bg-success{% elif step.step_number == current_step %}bg-primary{% else %}bg-secondary{% endif %}">
+                                {% if step.step_number < current_step %}
+                                <i class="bi bi-check"></i> Done
+                                {% elif step.step_number == current_step %}
+                                Current
+                                {% else %}
+                                Pending
+                                {% endif %}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const sectionContent = document.getElementById('section_content');
+    const validationFeedback = document.getElementById('validationFeedback');
+    const validationContent = document.getElementById('validationContent');
+    const wordCountDisplay = document.getElementById('wordCount');
+    const templateId = {{ template.id }};
+    const sectionName = "{{ current_section.section_name|escapejs }}";
+    const minWords = {{ current_section.metadata.min_words|default:10 }};
+
+    let validationTimeout = null;
+
+    // Update word count
+    function updateWordCount() {
+        const content = sectionContent.value.trim();
+        const words = content ? content.split(/\s+/).length : 0;
+        wordCountDisplay.textContent = words + ' word' + (words !== 1 ? 's' : '');
+
+        if (words < minWords) {
+            wordCountDisplay.classList.add('under-minimum');
+            wordCountDisplay.classList.remove('at-minimum');
+        } else {
+            wordCountDisplay.classList.remove('under-minimum');
+            wordCountDisplay.classList.add('at-minimum');
+        }
+
+        return words;
+    }
+
+    // Update keyword highlighting
+    function updateKeywordHighlighting(content) {
+        const contentLower = content.toLowerCase();
+
+        document.querySelectorAll('.keyword-badge').forEach(badge => {
+            const keyword = badge.dataset.keyword.toLowerCase();
+            if (contentLower.includes(keyword)) {
+                badge.classList.remove('keyword-required', 'keyword-recommended');
+                badge.classList.add('keyword-found');
+            } else {
+                badge.classList.remove('keyword-found');
+                if (badge.closest('#requiredKeywords')) {
+                    badge.classList.add('keyword-required');
+                } else {
+                    badge.classList.add('keyword-recommended');
+                }
+            }
+        });
+    }
+
+    // Update requirement checkmarks
+    function updateRequirements(data) {
+        const wordCount = updateWordCount();
+
+        // Min words requirement
+        const reqMinWords = document.getElementById('reqMinWords');
+        if (reqMinWords) {
+            if (wordCount >= minWords) {
+                reqMinWords.classList.remove('text-muted', 'text-danger');
+                reqMinWords.classList.add('text-success');
+            } else {
+                reqMinWords.classList.remove('text-muted', 'text-success');
+                reqMinWords.classList.add('text-danger');
+            }
+        }
+
+        // Not empty requirement
+        const reqNotEmpty = document.getElementById('reqNotEmpty');
+        if (reqNotEmpty) {
+            if (sectionContent.value.trim().length > 0) {
+                reqNotEmpty.classList.remove('text-muted', 'text-danger');
+                reqNotEmpty.classList.add('text-success');
+            } else {
+                reqNotEmpty.classList.remove('text-muted', 'text-success');
+                reqNotEmpty.classList.add('text-danger');
+            }
+        }
+
+        // No unreplaced variables
+        const reqNoVars = document.getElementById('reqNoVars');
+        if (reqNoVars && data) {
+            if (!data.unreplaced_variables || data.unreplaced_variables.length === 0) {
+                reqNoVars.classList.remove('text-muted', 'text-danger');
+                reqNoVars.classList.add('text-success');
+            } else {
+                reqNoVars.classList.remove('text-muted', 'text-success');
+                reqNoVars.classList.add('text-danger');
+            }
+        }
+
+        // Required keywords
+        const reqKeywords = document.getElementById('reqKeywords');
+        if (reqKeywords && data) {
+            if (!data.missing_keywords || data.missing_keywords.length === 0) {
+                reqKeywords.classList.remove('text-muted', 'text-danger');
+                reqKeywords.classList.add('text-success');
+            } else {
+                reqKeywords.classList.remove('text-muted', 'text-success');
+                reqKeywords.classList.add('text-danger');
+            }
+        }
+    }
+
+    // Real-time validation function
+    function validateContent() {
+        const content = sectionContent.value;
+
+        // Update word count and keywords immediately
+        updateWordCount();
+        updateKeywordHighlighting(content);
+
+        // Also collect variable values
+        const variables = document.querySelectorAll('.variable-input');
+        let fullContent = content;
+        variables.forEach(input => {
+            const varName = input.dataset.variable;
+            const varValue = input.value;
+            if (varValue) {
+                fullContent = fullContent.replace(new RegExp('\\{\\{' + varName + '\\}\\}', 'g'), varValue);
+                fullContent = fullContent.replace(new RegExp('\\[' + varName + '\\]', 'g'), varValue);
+            }
+        });
+
+        fetch(`/generate-document/${templateId}/validate/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                section_name: sectionName,
+                content: fullContent
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            displayValidation(data);
+            updateRequirements(data);
+        })
+        .catch(error => {
+            console.error('Validation error:', error);
+        });
+    }
+
+    // Display validation results with severity levels
+    function displayValidation(data) {
+        validationFeedback.classList.remove('is-valid', 'has-errors', 'has-warnings', 'has-info');
+
+        let html = '';
+        let hasSeverity = false;
+
+        // Display errors (critical)
+        if (data.errors && data.errors.length > 0) {
+            hasSeverity = true;
+            validationFeedback.classList.add('has-errors');
+            html += '<div class="mb-2"><strong class="severity-critical"><i class="bi bi-x-circle me-1"></i>Errors:</strong></div>';
+            html += '<ul class="mb-2 ps-3">';
+            data.errors.forEach(error => {
+                html += `<li class="text-danger small">${error}</li>`;
+            });
+            html += '</ul>';
+        }
+
+        // Display unreplaced variables
+        if (data.unreplaced_variables && data.unreplaced_variables.length > 0) {
+            hasSeverity = true;
+            if (!validationFeedback.classList.contains('has-errors')) {
+                validationFeedback.classList.add('has-errors');
+            }
+            html += '<div class="mb-2"><strong class="severity-critical"><i class="bi bi-exclamation-triangle me-1"></i>Unreplaced Variables:</strong></div>';
+            html += '<div class="mb-2">';
+            data.unreplaced_variables.forEach(v => {
+                html += `<span class="badge bg-danger me-1">${v}</span>`;
+            });
+            html += '</div>';
+        }
+
+        // Display warnings
+        if (data.warnings && data.warnings.length > 0) {
+            hasSeverity = true;
+            if (!validationFeedback.classList.contains('has-errors')) {
+                validationFeedback.classList.add('has-warnings');
+            }
+            html += '<div class="mb-2"><strong class="severity-warning"><i class="bi bi-exclamation-triangle me-1"></i>Warnings:</strong></div>';
+            html += '<ul class="mb-2 ps-3">';
+            data.warnings.forEach(warning => {
+                html += `<li class="text-warning small">${warning}</li>`;
+            });
+            html += '</ul>';
+        }
+
+        // Display suggestions
+        if (data.suggestions && data.suggestions.length > 0) {
+            html += '<div class="mb-2"><strong class="severity-info"><i class="bi bi-lightbulb me-1"></i>Suggestions:</strong></div>';
+            html += '<ul class="mb-2 ps-3">';
+            data.suggestions.forEach(suggestion => {
+                html += `<li class="text-info small">${suggestion}</li>`;
+            });
+            html += '</ul>';
+        }
+
+        // Display info messages
+        if (data.info && data.info.length > 0) {
+            html += '<div class="mb-2"><strong class="text-muted"><i class="bi bi-info-circle me-1"></i>Tips:</strong></div>';
+            html += '<ul class="mb-0 ps-3">';
+            data.info.forEach(info => {
+                html += `<li class="text-muted small">${info}</li>`;
+            });
+            html += '</ul>';
+        }
+
+        // Show success if valid
+        if (data.is_valid && !hasSeverity && !data.warnings?.length) {
+            validationFeedback.classList.add('is-valid');
+            html = '<div class="text-success"><i class="bi bi-check-circle me-2"></i>Content looks good!</div>';
+            if (data.completion_percentage) {
+                html += `<div class="mt-2 small text-muted">Completion: ${Math.round(data.completion_percentage)}%</div>`;
+            }
+        }
+
+        // Show completion percentage
+        if (data.completion_percentage && hasSeverity) {
+            html += `<div class="mt-2 pt-2 border-top border-secondary small text-muted">
+                Section completion: ${Math.round(data.completion_percentage)}%
+            </div>`;
+        }
+
+        validationContent.innerHTML = html;
+        validationFeedback.classList.add('show');
+    }
+
+    // Initial word count and requirements update
+    updateWordCount();
+    updateKeywordHighlighting(sectionContent.value);
+
+    // Add event listeners for real-time validation
+    if (sectionContent) {
+        sectionContent.addEventListener('input', function() {
+            updateWordCount();
+            updateKeywordHighlighting(sectionContent.value);
+            clearTimeout(validationTimeout);
+            validationTimeout = setTimeout(validateContent, 500);
+        });
+
+        // Initial validation
+        if (sectionContent.value.trim()) {
+            validateContent();
+        }
+    }
+
+    // Also validate when variable inputs change
+    document.querySelectorAll('.variable-input').forEach(input => {
+        input.addEventListener('input', function() {
+            clearTimeout(validationTimeout);
+            validationTimeout = setTimeout(validateContent, 500);
+        });
+
+        // Validate individual variable
+        input.addEventListener('blur', function() {
+            const varName = this.dataset.variable;
+            const value = this.value;
+
+            fetch(`/generate-document/${templateId}/validate-variable/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    variable_name: varName,
+                    value: value
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const errorDiv = document.getElementById(`var_${varName}_error`);
+                if (!data.is_valid && data.errors && data.errors.length > 0) {
+                    input.classList.add('is-invalid');
+                    if (errorDiv) {
+                        errorDiv.textContent = data.errors.join(', ');
+                    }
+                } else {
+                    input.classList.remove('is-invalid');
+                    input.classList.add('is-valid');
+                    if (errorDiv) {
+                        errorDiv.textContent = '';
+                    }
+                }
+            })
+            .catch(error => console.error('Variable validation error:', error));
+        });
+    });
+
+    // Update overall progress periodically
+    function updateOverallProgress() {
+        // Collect all section data from session storage or form
+        const sectionData = {};
+        const variableData = {};
+
+        // Get current section content
+        sectionData[sectionName] = sectionContent.value;
+
+        // Get variable values
+        document.querySelectorAll('.variable-input').forEach(input => {
+            variableData[input.dataset.variable] = input.value;
+        });
+
+        fetch(`/generate-document/${templateId}/completion-status/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                section_data: sectionData,
+                variable_data: variableData
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Update overall progress bar
+            const progressBar = document.getElementById('overallProgressBar');
+            const percentageDisplay = document.getElementById('overallPercentage');
+            const completedStepsDisplay = document.getElementById('completedSteps');
+            const errorWarningCount = document.getElementById('errorWarningCount');
+
+            if (progressBar && percentageDisplay) {
+                progressBar.style.width = data.overall_completion + '%';
+                percentageDisplay.textContent = Math.round(data.overall_completion) + '%';
+
+                // Change color based on status
+                progressBar.classList.remove('bg-primary', 'bg-success', 'bg-danger', 'bg-warning');
+                if (data.total_errors > 0) {
+                    progressBar.classList.add('bg-danger');
+                } else if (data.total_warnings > 0) {
+                    progressBar.classList.add('bg-warning');
+                } else if (data.overall_completion >= 100) {
+                    progressBar.classList.add('bg-success');
+                } else {
+                    progressBar.classList.add('bg-primary');
+                }
+            }
+
+            if (completedStepsDisplay) {
+                completedStepsDisplay.textContent = data.completed_steps;
+            }
+
+            if (errorWarningCount) {
+                let countText = '';
+                if (data.total_errors > 0) {
+                    countText += `<span class="text-danger">${data.total_errors} error${data.total_errors > 1 ? 's' : ''}</span>`;
+                }
+                if (data.total_warnings > 0) {
+                    if (countText) countText += ', ';
+                    countText += `<span class="text-warning">${data.total_warnings} warning${data.total_warnings > 1 ? 's' : ''}</span>`;
+                }
+                errorWarningCount.innerHTML = countText;
+            }
+
+            // Update generate button state
+            const generateBtn = document.getElementById('generateBtn');
+            if (generateBtn) {
+                if (data.is_ready_to_generate) {
+                    generateBtn.classList.remove('btn-secondary');
+                    generateBtn.classList.add('btn-success');
+                    generateBtn.disabled = false;
+                } else {
+                    generateBtn.classList.remove('btn-success');
+                    generateBtn.classList.add('btn-secondary');
+                    // Don't disable, let user try anyway
+                }
+            }
+        })
+        .catch(error => console.error('Progress update error:', error));
+    }
+
+    // Update progress on load
+    updateOverallProgress();
+});
+</script>
+{% endblock extra_js %}

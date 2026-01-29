@@ -1,0 +1,95 @@
+{% extends 'forge/base.html' %}
+{% load widget_tweaks %}
+
+{% block title %}GitHub Sync - BMAD Forge{% endblock title %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card bg-dark border-secondary">
+                <div class="card-header bg-secondary bg-opacity-25">
+                    <h5 class="mb-0"><i class="bi bi-github me-2"></i>GitHub Sync</h5>
+                </div>
+                
+                <div class="card-body">
+                    <p class="text-muted mb-4">
+                        Synchronize BMAD templates from a GitHub repository. Templates will be imported and stored in the database for use with the prompt generator.
+                    </p>
+                    
+                    <!-- Sync Form -->
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        {% for field in form %}
+                        <div class="mb-3">
+                            <label for="{{ field.id_for_label }}" class="form-label">
+                                {{ field.label }}
+                                {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                            </label>
+                            {% if field.field.help_text %}
+                            <div class="form-text text-muted small">{{ field.field.help_text }}</div>
+                            {% endif %}
+                            {{ field|add_class:"form-control bg-dark text-light border-secondary" }}
+                            {% if field.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in field.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-arrow-repeat me-2"></i>Sync Templates
+                            </button>
+                            <a href="{% url 'forge:manual_sync' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-lightning me-2"></i>Quick Sync (Default Repository)
+                            </a>
+                        </div>
+                    </form>
+                    
+                    <!-- Current Repository Info -->
+                    <hr class="border-secondary">
+                    <div class="alert bg-black border-secondary">
+                        <h6 class="alert-heading"><i class="bi bi-info-circle me-2"></i>Default Repository</h6>
+                        <p class="mb-0 small text-muted">
+                            <strong>Owner/Repo:</strong> {{ TEMPLATE_REPO }}<br>
+                            <strong>Branch:</strong> main<br>
+                            <strong>Path:</strong> webapp/forge/templates
+                        </p>
+                    </div>
+                    
+                    <!-- BMAD Framework Reference -->
+                    <div class="alert bg-black border-secondary">
+                        <h6 class="alert-heading"><i class="bi bi-book me-2"></i>BMAD Framework</h6>
+                        <p class="mb-0 small text-muted">
+                            This tool integrates with the BMAD (Breakthrough Method for Agile AI-Driven Development) framework.
+                            Learn more at 
+                            <a href="https://github.com/bmadcode/BMAD-METHOD-v5" target="_blank" class="text-info">
+                                BMAD-METHOD-v5 <i class="bi bi-box-arrow-up-right"></i>
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sync History Placeholder -->
+            <div class="card bg-dark border-secondary mt-4">
+                <div class="card-header bg-secondary bg-opacity-25">
+                    <h6 class="mb-0"><i class="bi bi-clock-history me-2"></i>Sync Instructions</h6>
+                </div>
+                <div class="card-body">
+                    <ol class="mb-0">
+                        <li class="mb-2">Enter the GitHub repository URL containing BMAD templates</li>
+                        <li class="mb-2">Specify the branch (default: main)</li>
+                        <li class="mb-2">Provide the path to the templates directory</li>
+                        <li class="mb-2">Click "Sync Templates" to begin the import process</li>
+                        <li>Imported templates will appear in the Template Library</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
