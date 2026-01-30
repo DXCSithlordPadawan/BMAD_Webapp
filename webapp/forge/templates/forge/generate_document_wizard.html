@@ -1,4 +1,5 @@
 {% extends 'forge/base.html' %}
+{% load forge_filters %}
 
 {% block title %}Generate Document: {{ template.title }} - BMAD Forge{% endblock title %}
 
@@ -291,16 +292,61 @@
                                     <div class="mb-3">
                                         <label for="var_{{ var }}" class="form-label">
                                             {{ var|cut:"_"|title }}
+                                            {% if current_section.variable_metadata|get_item:var|get_item:"required" %}
                                             <span class="text-danger">*</span>
+                                            {% endif %}
                                         </label>
+                                        {% with metadata=current_section.variable_metadata|get_item:var %}
+                                        {% if metadata %}
+                                        {% with var_key="var_"|add:var %}
+                                        {% if metadata.help_text %}
+                                        <div class="form-text text-muted small mb-1">{{ metadata.help_text }}</div>
+                                        {% endif %}
+                                        
+                                        {% if metadata.input_type == "select" %}
+                                        <select class="form-select bg-dark text-light border-secondary variable-input"
+                                                id="var_{{ var }}"
+                                                name="var_{{ var }}"
+                                                data-variable="{{ var }}"
+                                                {% if metadata.required %}required{% endif %}>
+                                            <option value="">-- Select {{ var|cut:"_"|title }} --</option>
+                                            {% for option in metadata.options %}
+                                            <option value="{{ option }}" {% if section_data|get_item:var_key == option %}selected{% endif %}>{{ option }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        {% elif metadata.input_type == "multiselect" %}
+                                        <select class="form-select bg-dark text-light border-secondary variable-input"
+                                                id="var_{{ var }}"
+                                                name="var_{{ var }}"
+                                                data-variable="{{ var }}"
+                                                multiple
+                                                {% if metadata.required %}required{% endif %}>
+                                            {% for option in metadata.options %}
+                                            <option value="{{ option }}" {% if option in section_data|get_item:var_key|default:"" %}selected{% endif %}>{{ option }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <div class="form-text text-muted small">Hold Ctrl/Cmd to select multiple options</div>
+                                        {% elif metadata.input_type == "textarea" %}
+                                        <textarea class="form-control bg-dark text-light border-secondary variable-input"
+                                                  id="var_{{ var }}"
+                                                  name="var_{{ var }}"
+                                                  rows="3"
+                                                  placeholder="{{ metadata.placeholder }}"
+                                                  data-variable="{{ var }}"
+                                                  {% if metadata.required %}required{% endif %}>{{ section_data|get_item:var_key|default:'' }}</textarea>
+                                        {% else %}
                                         <input type="text"
                                                class="form-control bg-dark text-light border-secondary variable-input"
                                                id="var_{{ var }}"
                                                name="var_{{ var }}"
-                                               value="{{ section_data|default_if_none:''|get_item:var|default:'' }}"
-                                               placeholder="Enter value for {{ var }}"
+                                               value="{{ section_data|get_item:var_key|default:'' }}"
+                                               placeholder="{{ metadata.placeholder }}"
                                                data-variable="{{ var }}"
-                                               required>
+                                               {% if metadata.required %}required{% endif %}>
+                                        {% endif %}
+                                        {% endwith %}
+                                        {% endif %}
+                                        {% endwith %}
                                         <div class="invalid-feedback" id="var_{{ var }}_error"></div>
                                     </div>
                                     {% endfor %}
