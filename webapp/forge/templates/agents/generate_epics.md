@@ -134,6 +134,7 @@ The output's root README should explain that designs may or may not be included.
 ## format
 I need it all inside of a zip file, organized by feature, with epics & stories inside. There should be a folder within each epic for any reference images (think of it like design snapshots from a product designer), integrated into the Epic/Story definitions. It should look like this:
 
+```
 /docs
 → README.md (explains the structure of the directory to an LLM)
 → features
@@ -144,5 +145,6 @@ I need it all inside of a zip file, organized by feature, with epics & stories i
 → → → epic-images
 → pm-notes
 → → PRD
+```
 
 If you have clarifying questions about details, ask me NOW
