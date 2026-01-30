@@ -587,6 +587,58 @@ class DocumentGenerator:
         variable_metadata = TemplateParser.parse_variable_metadata(content)
         steps = []
 
+        # If there are variables defined in frontmatter, add a preliminary variables step
+        if variable_metadata:
+            # Collect all variables from frontmatter
+            all_variables = list(variable_metadata.keys())
+            
+            # Create a preliminary step for template-level variables
+            variable_step = {
+                'step_number': 1,
+                'section_name': 'Template Variables',
+                'section_level': 2,
+                'description': 'Fill in the template-level variables that will be used throughout the document.',
+                'variables': all_variables,
+                'questions': [],
+                'original_content': '',
+                'metadata': {
+                    'required': True,
+                    'min_words': 0,
+                    'max_words': None,
+                    'input_type': 'structured',
+                    'validation_severity': 'critical',
+                    'keywords_required': [],
+                    'keywords_recommended': [],
+                },
+                'guidance': {
+                    'section_name': 'Template Variables',
+                    'help_text': 'These variables will be used throughout the document. Fill them in before proceeding to the sections.',
+                    'min_words': 0,
+                    'max_words': None,
+                    'required': True,
+                    'examples': [],
+                    'keywords_required': [],
+                    'keywords_recommended': [],
+                    'input_type': 'structured',
+                    'structured_fields': [],
+                    'placeholder': '',
+                    'validation_severity': 'critical',
+                },
+                'variable_metadata': {
+                    var: {
+                        'description': variable_metadata[var].description,
+                        'required': variable_metadata[var].required,
+                        'input_type': variable_metadata[var].input_type,
+                        'options': variable_metadata[var].options,
+                        'help_text': variable_metadata[var].help_text,
+                        'placeholder': variable_metadata[var].placeholder or f'Enter value for {var}',
+                        'validation_pattern': variable_metadata[var].validation_pattern,
+                    }
+                    for var in all_variables
+                },
+            }
+            steps.append(variable_step)
+
         for i, section in enumerate(sections):
             # Get metadata for this section
             metadata = section_metadata.get(section.name)
@@ -594,8 +646,11 @@ class DocumentGenerator:
             # Get guidance for this section
             guidance = TemplateParser.get_section_guidance(section.name, metadata)
 
+            # Calculate step number (offset by 1 if we added a variables step)
+            step_number = i + 2 if variable_metadata else i + 1
+
             step = {
-                'step_number': i + 1,
+                'step_number': step_number,
                 'section_name': section.name,
                 'section_level': section.level,
                 'description': section.description,

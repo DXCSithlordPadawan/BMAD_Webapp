@@ -911,12 +911,21 @@ Input content.
 '''
         steps = DocumentGenerator.get_enhanced_wizard_steps(template_content)
 
-        assert len(steps) >= 2
+        # Should have at least 3 steps: Template Variables + 2 sections
+        assert len(steps) >= 3
+        
+        # First step should be Template Variables (since template has variables in frontmatter)
         first_step = steps[0]
-        assert 'metadata' in first_step
-        assert 'guidance' in first_step
-        assert first_step['metadata']['required'] is True
-        assert first_step['metadata']['min_words'] == 20
+        assert first_step['section_name'] == 'Template Variables'
+        assert first_step['metadata']['min_words'] == 0
+        assert 'PROJECT_NAME' in first_step['variables']
+        
+        # Second step should be "Your Role"
+        second_step = steps[1]
+        assert 'metadata' in second_step
+        assert 'guidance' in second_step
+        assert second_step['metadata']['required'] is True
+        assert second_step['metadata']['min_words'] == 20
 
     def test_calculate_completion_status(self):
         """Test calculating overall wizard completion status."""
