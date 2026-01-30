@@ -12,6 +12,7 @@ sections:
     min_words: 20
     max_words: 150
     input_type: textarea
+    input:  [YourRole]
     help_text: "Define the product planning specialist persona for epic/story generation"
     keywords_required:
       - "epics"
@@ -28,6 +29,7 @@ sections:
     required: true
     min_words: 15
     input_type: textarea
+    input: [Inputs]
     help_text: "Specify inputs needed for epic/story generation"
     keywords_required:
       - "PRD"
@@ -41,6 +43,7 @@ sections:
     required: true
     min_words: 20
     input_type: textarea
+    input: [Outputs]
     help_text: "Define the expected epic/story deliverables"
     keywords_required:
       - "epics"
@@ -54,13 +57,15 @@ variables:
   PROJECT_NAME:
     description: "Name of the project"
     required: true
-    type: text
+    input_type: text
+    input: [Project Name]
     placeholder: "Project Name"
 
   PRD_REFERENCE:
     description: "Reference to the PRD document"
     required: true
-    type: text
+    input_type: text
+    input: [PRD document path or ID]
     placeholder: "PRD document path or ID"
 
   OUTPUT_FORMAT:
@@ -111,24 +116,22 @@ Your output will include:
 
 ---
 
-<goal>
+## goal
 Attached is a PRD we made. I need you to create a very LIGHTWEIGHT series of epics and stories
-</goal>
 
-<warnings> 
+## warnings>
 I don't need verbose data models and api contracts
 I just need the features deconstructed into EPICs and STORIES with just the core functional and non-functional requirements in it.
 Each epic/story should be a clear separation. Meaning, there should be no duplication on efforts across epics/stories
-</warnings>
-<guidelines>
+
+## guidelines
 Feature / Initiative = user-visible capability or business outcome (e.g., “AI Chat Assistant”).
 Epics = major deliverables or flows realizing that feature (chat UX, context layer, prompt logic).
 Stories = increments completing an epic's acceptance criteria.
 Ensure UX is a first-class citizen, meaning epic-level, story-level, and task-level UX
 The output's root README should explain that designs may or may not be included. If it's there, it should be read, the user should be asked to provide thoughts on the feature function when the LLM goes to build implementation plans. It should explain to LLMs that details of each feature for the stories are found in the PRD
-</guidelines>
 
-<format>
+## format
 I need it all inside of a zip file, organized by feature, with epics & stories inside. There should be a folder within each epic for any reference images (think of it like design snapshots from a product designer), integrated into the Epic/Story definitions. It should look like this:
 
 /docs
@@ -141,6 +144,5 @@ I need it all inside of a zip file, organized by feature, with epics & stories i
 → → → epic-images
 → pm-notes
 → → PRD
-</format>
 
 If you have clarifying questions about details, ask me NOW
