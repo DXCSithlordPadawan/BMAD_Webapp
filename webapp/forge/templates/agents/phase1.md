@@ -114,7 +114,7 @@ Your output will include:
 
 ---
 
-<goal>
+## goal
 I'd like for you to help me brainstorm the overall structure of my application. You should act like a Senior Software Engineer that has extensive experience developing, and building architecture for large scale web applications. You should ask me follow up questions as we proceed if you think it's necessary to gather a fuller picture.
 To accomplish this, you take the Context below, considering:
 What I’m trying to build (WHAT)
@@ -122,12 +122,11 @@ Who I’m building it for (WHO)
 The pains it solves (WHY)
 How it’s different from the current status quo (HOW)
 Any other details I give you
-<sub-goal>
+## sub-goal
 As part of your process, make sure to research public documentation for each tech choice we’re making to ensure it makes sense in the broader context of our application.
-</sub-goal>
-</goal>
-<format>
+
 Return your format in Markdown, without pre-text or post-text descriptions.
+
 ## Launch Features (MVP)
 ### Feature Name
 **Strong** 2-3 sentence summary of what the feature is or does
@@ -165,14 +164,14 @@ An image detailing a full system diagram of the MVP. Please create a clean archi
 * of
 * Architecture
 * questions
-</format>
-<warnings-or-guidance>
+
+## warnings-or-guidance
 We’re focusing on functional accomplishments of features in this stage, not designing UX in detail
 If a feature or tech choice seems ambiguous, ask me for clarification such that you would get what you need to continue
 You should consider how tech choices may evolve or change if the application scales and give me recommendations with tradeoff consideration
 We should have a clear architecture for the app, including main infrastructure considerations, services/microservices required, critical 3rd party APIs choices, etc
-</warnings-or-guidance>
-<context>
+
+## context
 I’d like to build a mobile app that is a modern day news app that gives users control to curate personal news stories and turn them into bite-sized 5-10 minute briefings
 You should take inspiration from apps like Spotify & Feedly but it will be significantly different for the following reasons:
 - This is an "AI-first" approach to news curation
@@ -188,13 +187,12 @@ Here is the full extent of how the app should function as an MVP:
 5. A separate tab at bottom has a different feed, but this time its curated list of "for you" podcast style clips combining stories across all the stuff they care about into a "5 o-clock news" style of segment
 6. A separate tab at bottom has a "deep research" style chat interface where someone can insert a story from their feeds and then ask the system to give them a deeper analysis into the event
 7. Profile section where different things can get configured
-<other-critical-notes>
+## other-critical-notes
 WHAT - per my intro above, I’m building an AI-first news app 
 WHO - this app is for open-minded critical thinkers that are distrustful of modern news cycles
 WHY - this app solves the problem that most news outlets are politically biased and dishonest in their reporting, often passing off opinions as facts, or intentionally framing events to rile up their base
 HOW - this app is different from others in that it enables deep exploration of actual facts behind scenarios, allowing users to draw their own opinions
-</other-critical-notes>
-<current-tech-choices>
+
 The frontend will be built in React Native using Expo
 The backend will be built in Node.js using Express
 The database will be Postgres, hosted through Supabase
@@ -202,9 +200,6 @@ The server will be hosted on AWS App Runner
 I’d like to develop locally with a Docker container
 I will use Posthog for analytics in my application
 I will use Stripe for payments in my application
-</current-tech-choices>
-</context>
-
 
 
 
