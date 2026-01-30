@@ -134,6 +134,23 @@ The output's root README should explain that designs may or may not be included.
 ## format
 I need it all inside of a zip file, organized by feature, with epics & stories inside. There should be a folder within each epic for any reference images (think of it like design snapshots from a product designer), integrated into the Epic/Story definitions. It should look like this:
 
+```mermaid
+flowchart TD
+    A["/docs"] --> B["README.md<br/>(explains the structure of the directory to an LLM)"]
+    A --> C["features"]
+
+    C --> D["epic-name"]
+    D --> E["story-name"]
+
+    E --> F["story-spec<br/>(contains relevant references to feature stories, like 'F3')"]
+    E --> G["story-images"]
+
+    D --> H["epic-images"]
+
+    A --> I["pm-notes"]
+    I --> J["PRD"]
+```
+
 ```
 /docs
 → README.md (explains the structure of the directory to an LLM)
