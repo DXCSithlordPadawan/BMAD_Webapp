@@ -391,8 +391,8 @@
                                 </div>
                                 {% endif %}
 
-                                <!-- Original Section Content Preview -->
-                                {% if current_section.original_content %}
+                                <!-- Original Section Content Preview (only for non-variable-only sections) -->
+                                {% if current_section.section_name != "Template Variables" and current_section.original_content %}
                                 <div class="mt-4">
                                     <h6 class="text-muted mb-2">
                                         <i class="bi bi-file-text me-2"></i>Original Template Content (Preview)

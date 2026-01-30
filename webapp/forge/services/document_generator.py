@@ -626,13 +626,13 @@ class DocumentGenerator:
                 },
                 'variable_metadata': {
                     var: {
-                        'description': variable_metadata[var].description if var in variable_metadata else '',
-                        'required': variable_metadata[var].required if var in variable_metadata else True,
-                        'input_type': variable_metadata[var].input_type if var in variable_metadata else 'text',
-                        'options': variable_metadata[var].options if var in variable_metadata else [],
-                        'help_text': variable_metadata[var].help_text if var in variable_metadata else '',
-                        'placeholder': variable_metadata[var].placeholder if var in variable_metadata else f'Enter value for {var}',
-                        'validation_pattern': variable_metadata[var].validation_pattern if var in variable_metadata else None,
+                        'description': variable_metadata[var].description,
+                        'required': variable_metadata[var].required,
+                        'input_type': variable_metadata[var].input_type,
+                        'options': variable_metadata[var].options,
+                        'help_text': variable_metadata[var].help_text,
+                        'placeholder': variable_metadata[var].placeholder or f'Enter value for {var}',
+                        'validation_pattern': variable_metadata[var].validation_pattern,
                     }
                     for var in all_variables
                 },
