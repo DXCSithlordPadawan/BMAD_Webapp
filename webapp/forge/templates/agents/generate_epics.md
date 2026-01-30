@@ -151,17 +151,4 @@ flowchart TD
     I --> J["PRD"]
 ```
 
-```
-/docs
-→ README.md (explains the structure of the directory to an LLM)
-→ features
-→ → epic-name
-→ → → /story-name
-→ → → → story-spec (contains relevant references to feature stories, like “F3”)
-→ → → → story-images
-→ → → epic-images
-→ pm-notes
-→ → PRD
-```
-
 If you have clarifying questions about details, ask me NOW
