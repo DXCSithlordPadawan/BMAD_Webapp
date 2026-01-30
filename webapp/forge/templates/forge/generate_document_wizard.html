@@ -299,51 +299,62 @@
                                         {% with metadata=current_section.variable_metadata|get_item:var %}
                                         {% if metadata %}
                                         {% with var_key="var_"|add:var %}
-                                        {% if metadata.help_text %}
-                                        <div class="form-text text-muted small mb-1">{{ metadata.help_text }}</div>
+                                        {% with input_type=metadata|get_item:"input_type" %}
+                                        {% with help_text=metadata|get_item:"help_text" %}
+                                        {% with placeholder=metadata|get_item:"placeholder" %}
+                                        {% with options=metadata|get_item:"options" %}
+                                        {% with is_required=metadata|get_item:"required" %}
+                                        {% if help_text %}
+                                        <div class="form-text text-muted small mb-1">{{ help_text }}</div>
                                         {% endif %}
                                         
-                                        {% if metadata.input_type == "select" %}
+                                        {% if input_type == "select" %}
                                         <select class="form-select bg-dark text-light border-secondary variable-input"
                                                 id="var_{{ var }}"
                                                 name="var_{{ var }}"
                                                 data-variable="{{ var }}"
-                                                {% if metadata.required %}required{% endif %}>
+                                                {% if is_required %}required{% endif %}>
                                             <option value="">-- Select {{ var|cut:"_"|title }} --</option>
-                                            {% for option in metadata.options %}
+                                            {% for option in options %}
                                             <option value="{{ option }}" {% if section_data|get_item:var_key == option %}selected{% endif %}>{{ option }}</option>
                                             {% endfor %}
                                         </select>
-                                        {% elif metadata.input_type == "multiselect" %}
+                                        {% elif input_type == "multiselect" %}
                                         <select class="form-select bg-dark text-light border-secondary variable-input"
                                                 id="var_{{ var }}"
                                                 name="var_{{ var }}"
                                                 data-variable="{{ var }}"
                                                 multiple
-                                                {% if metadata.required %}required{% endif %}>
-                                            {% for option in metadata.options %}
+                                                {% if is_required %}required{% endif %}>
+                                            {% for option in options %}
                                             <option value="{{ option }}" {% if option in section_data|get_item:var_key|default:"" %}selected{% endif %}>{{ option }}</option>
                                             {% endfor %}
                                         </select>
                                         <div class="form-text text-muted small">Hold Ctrl/Cmd to select multiple options</div>
-                                        {% elif metadata.input_type == "textarea" %}
+                                        {% elif input_type == "textarea" %}
                                         <textarea class="form-control bg-dark text-light border-secondary variable-input"
                                                   id="var_{{ var }}"
                                                   name="var_{{ var }}"
                                                   rows="3"
-                                                  placeholder="{{ metadata.placeholder }}"
+                                                  placeholder="{{ placeholder }}"
                                                   data-variable="{{ var }}"
-                                                  {% if metadata.required %}required{% endif %}>{{ section_data|get_item:var_key|default:'' }}</textarea>
+                                                  {% if is_required %}required{% endif %}>{{ section_data|get_item:var_key|default:'' }}</textarea>
                                         {% else %}
                                         <input type="text"
                                                class="form-control bg-dark text-light border-secondary variable-input"
                                                id="var_{{ var }}"
                                                name="var_{{ var }}"
                                                value="{{ section_data|get_item:var_key|default:'' }}"
-                                               placeholder="{{ metadata.placeholder }}"
+                                               placeholder="{{ placeholder }}"
                                                data-variable="{{ var }}"
-                                               {% if metadata.required %}required{% endif %}>
+                                               {% if is_required %}required{% endif %}>
                                         {% endif %}
+                                        {% endwith %}
+                                        {% endwith %}
+                                        {% endwith %}
+                                        {% endwith %}
+                                        {% endwith %}
+                                        {% endwith %}
                                         {% endwith %}
                                         {% endif %}
                                         {% endwith %}
@@ -353,7 +364,8 @@
                                 </div>
                                 {% endif %}
 
-                                <!-- Section Content Input -->
+                                <!-- Section Content Input (only for non-variable-only sections) -->
+                                {% if current_section.section_name != "Template Variables" %}
                                 <div class="mb-3">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <label for="section_content" class="form-label mb-0">
@@ -378,6 +390,7 @@
                                 <div id="validationFeedback" class="validation-feedback">
                                     <div id="validationContent"></div>
                                 </div>
+                                {% endif %}
 
                                 <!-- Original Section Content Preview -->
                                 {% if current_section.original_content %}

@@ -122,13 +122,16 @@ class VariableMetadata:
     @classmethod
     def from_dict(cls, name: str, data: Dict[str, Any]) -> 'VariableMetadata':
         """Create VariableMetadata from a dictionary (parsed from YAML)."""
+        # Support both 'type' and 'input_type' keys
+        input_type = data.get('input_type') or data.get('type', 'text')
+        
         return cls(
             name=name,
             description=data.get('description', ''),
             required=data.get('required', True),
             validation_pattern=data.get('validation'),
             default_value=data.get('default'),
-            input_type=data.get('input_type', 'text'),
+            input_type=input_type,
             options=data.get('options', []),
             help_text=data.get('help_text', ''),
             placeholder=data.get('placeholder', ''),
